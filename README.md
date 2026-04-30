@@ -1,4 +1,4 @@
-Roguelike Deckbuilder Computeiros 025
+# Roguelike Deckbuilder Computeiros 025
 
 Este projeto é um jogo de batalha em turnos inspirado no roguelike deckbuilder *Slay the Spire*. O jogador controla o herói **Didi Marco**, usando cartas de ataque, defesa e efeitos para derrotar inimigos ao longo de uma sequência de batalhas encadeadas por um mapa de progressão.
 
@@ -126,8 +126,16 @@ Cada nó do mapa contém uma lista de eventos executados em sequência ao ser vi
 
 - **`Battle`** — combate contra inimigos; pode retornar `CONTINUE`, `DEFEAT` ou `QUIT`.
 - **`CampFire`** — permite descansar (recuperar 35% de vida) ou forjar uma carta: são apresentadas 3 cartas aleatórias do baralho e a escolhida tem seus atributos melhorados em 35%.
+
+![Diagrama UML — CampFire](assets/CampfireUML.drawio.png)
+
 - **`Shop`** — loja com uma carta de dano, uma de escudo e uma poção, compráveis com ouro ganho em batalhas. O jogador pode sair a qualquer momento.
+
+![Diagrama UML — Shop](assets/ShopUML.drawio.png)
+
 - **`Choice`** — evento narrativo com duas opções embaralhadas, cada uma causando dano ou cura equivalente a 10% da vida máxima.
+
+![Diagrama UML — Choice](assets/ChoiceUML.drawio.png)
 
 O padrão **Strategy** é aplicado em `CampFire` (via `CampFireAction`), em `Choice` (via `ChoiceOption`) e em `Shop` (via `ShopItem`), permitindo adicionar novos comportamentos sem modificar as classes de evento.
 
@@ -212,6 +220,8 @@ A criação de todas as entidades e estruturas do jogo é centralizada em `GameF
 - **`createTreePath()`** — orquestra a construção completa da árvore de progressão a partir de `Data.nodeDefinitions`.
 
 Essa separação mantém `App` e os demais consumidores desacoplados das classes concretas, centralizando toda a lógica de instanciação em um único lugar.
+
+![Diagrama UML — GameFactory](assets/GameFactoryUML.drawio.png)
 
 ---
 
