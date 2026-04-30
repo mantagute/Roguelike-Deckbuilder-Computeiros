@@ -405,12 +405,13 @@ public final class UserInterface {
      * Exibe a tela de fim de jogo, indicando vitória ou derrota.
      *
      * <p>Em caso de vitória, exibe o nome do herói e uma mensagem de encerramento.
-     * Em caso de derrota, exibe os nomes dos inimigos vencedores.
+     * Em caso de derrota, percorre os eventos do último nó para exibir os nomes
+     * dos inimigos presentes na batalha final.
      *
-     * @param heroWon    {@code true} se o herói venceu todos os combates; {@code false} caso contrário
-     * @param heroName   nome do herói
-     * @param enemyNames lista com os nomes dos inimigos presentes no último combate;
-     *                   deve conter pelo menos dois elementos
+     * @param heroWon  {@code true} se o herói venceu todos os combates; {@code false} caso contrário
+     * @param heroName nome do herói
+     * @param lastNode último nó visitado na árvore de progressão; usado para extrair
+     *                 os nomes dos inimigos em caso de derrota
      */
     public static void printGameOver(boolean heroWon, String heroName, Node lastNode) {
         System.out.println();

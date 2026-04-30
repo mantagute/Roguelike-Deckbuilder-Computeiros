@@ -16,12 +16,12 @@ public class TreePath {
     Node root;
 
     /**
-     * Constrói a árvore de progressão a partir da lista de grupos de inimigos.
+     * Constrói a árvore de progressão a partir da lista de eventos por nó.
      * O elemento central da lista torna-se a raiz; as metades esquerda
      * e direita formam as subárvores de forma recursiva.
      *
-     * @param enemies lista de grupos de inimigos, onde cada grupo representa
-     *                os inimigos de um nó do mapa
+     * @param events lista de listas de eventos, onde cada lista representa
+     *               os eventos de um nó do mapa
      */
     public TreePath(List<List<Event>> events) {
         this.root = listToTree(events, 0, events.size() - 1);
@@ -29,12 +29,12 @@ public class TreePath {
 
     /**
      * Constrói recursivamente a subárvore a partir do intervalo
-     * {@code [start, end]} da lista de grupos de inimigos.
+     * {@code [start, end]} da lista de eventos.
      * O elemento central do intervalo torna-se a raiz da subárvore.
      *
-     * @param enemies lista completa de grupos de inimigos
-     * @param start   índice inicial do intervalo atual
-     * @param end     índice final do intervalo atual
+     * @param events lista completa de listas de eventos por nó
+     * @param start  índice inicial do intervalo atual
+     * @param end    índice final do intervalo atual
      * @return raiz da subárvore construída, ou {@code null} se {@code start > end}
      */
     private Node listToTree(List<List<Event>> events, int start, int end) {

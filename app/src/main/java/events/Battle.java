@@ -58,14 +58,11 @@ public class Battle extends Event {
     private boolean quitRequested = false;
 
     /**
-     * Constrói uma nova instância de batalha com os participantes e recursos fornecidos.
+     * Constrói uma nova instância de batalha com as definições de inimigos fornecidas.
+     * Os demais recursos (herói, publisher, scanner, pilhas) são injetados via
+     * {@link #initializeEvent} no momento em que o evento é iniciado pelo mapa.
      *
-     * @param hero            herói controlado pelo jogador
-     * @param enemies         lista de inimigos presentes no combate
-     * @param publisher       Publisher central do sistema Observer
-     * @param scanner         leitor de entrada do terminal; não deve ser {@code null}
-     * @param heroBuyPile     pilha de compra do herói; persiste entre batalhas
-     * @param heroDiscardPile pilha de descarte do herói; persiste entre batalhas
+     * @param enemyDefinitions lista de definições dos inimigos presentes neste combate
      */
     public Battle(List<EnemyDefinition> enemyDefinitions) {
         this.enemyDefinitions = enemyDefinitions;
@@ -99,6 +96,12 @@ public class Battle extends Event {
 
         switch (battleResult) {
             case VICTORY:
+                    /**
+                     * Concede uma recompensa aleatória de ouro ao herói após a vitória,
+                     * no intervalo de 30 a 45 moedas.
+                     *
+                     * @param hero herói que receberá o ouro
+                     */
                     rewardGold(hero);
                     return EventResult.CONTINUE;
             case DEFEAT:
@@ -358,10 +361,24 @@ public class Battle extends Event {
         user.manageEffects();
     }
 
+    /**
+     * Define o Publisher do sistema Observer a ser utilizado neste combate.
+     * Deve ser chamado antes de {@link #initializeEvent} para que os efeitos
+     * de status possam se inscrever corretamente no barramento de eventos.
+     *
+     * @param publisher Publisher central do jogo
+     */
     public void setPublisher(Publisher publisher) {
         this.publisher = publisher;
     }
 
+    /**
+     * Retorna a lista de definições dos inimigos presentes neste combate.
+     * Utilizado por {@link gameOrchestrator.UserInterface#printGameOver} para
+     * exibir os nomes dos inimigos na tela de derrota.
+     *
+     * @return lista imutável de {@link EnemyDefinition}
+     */
     public List<EnemyDefinition> getEnemyDefinitions() {
         return enemyDefinitions;
     }

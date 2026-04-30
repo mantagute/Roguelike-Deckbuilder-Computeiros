@@ -100,5 +100,10 @@ public abstract class Card {
      */
     public abstract double getEffectValue();
 
+    /**
+     * Melhora os atributos numéricos desta carta (dano, escudo ou acúmulos de efeito),
+     * aplicando um bônus percentual sobre o valor atual.
+     * Chamado pela {@link events.campfire.UpgradeCard} durante o evento de fogueira.
+     */
     public abstract void upgrade();
 }

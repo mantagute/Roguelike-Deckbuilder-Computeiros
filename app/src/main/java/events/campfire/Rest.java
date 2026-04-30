@@ -5,6 +5,11 @@ import deck.BuyPile;
 import deck.DiscardPile;
 import entities.Hero;
 
+/**
+ * Ação de fogueira que permite ao herói descansar, recuperando
+ * {@code 35%} da sua vida máxima.
+ */
+
 public class Rest implements CampFireAction  {
 
     public String getDescription() {

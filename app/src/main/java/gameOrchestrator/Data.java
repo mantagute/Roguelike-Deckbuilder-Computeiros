@@ -3,6 +3,20 @@ package gameOrchestrator;
 import java.util.List;
 import effects.Effect.EffectType;
 
+/**
+ * Repositório central de dados estáticos do jogo em formato declarativo.
+ *
+ * <p>Contém exclusivamente definições de dados — listas de {@link CardDefinition},
+ * {@link EnemyDefinition}, {@link ChoiceDefinition}, {@link NodeDefinition} e
+ * {@link HeroDefinition} — sem nenhuma lógica de instanciação. A criação de
+ * objetos concretos a partir dessas definições é responsabilidade de
+ * {@link GameFactory}.
+ *
+ * <p>Não deve ser instanciada — todos os campos são estáticos e finais.
+ *
+ * @see GameFactory
+ */
+
 public class Data {
 
     private Data() {}
@@ -130,9 +144,36 @@ public class Data {
     // Records de definição
     // =========================================================================
 
+    /**
+     * Define os atributos de um inimigo do jogo.
+     *
+     * @param name   nome do inimigo
+     * @param health pontos de vida iniciais
+     * @param energy energia máxima por turno
+     * @param type   tipo do inimigo ({@link EnemyDefinition.EnemyType})
+     */
     public record EnemyDefinition(String name, double health, int energy, EnemyType type) {
-        public enum EnemyType { AZOIDE, BZOIDE }
+        /** Tipos de inimigos disponíveis no jogo. */
+        public enum EnemyType { 
+            /** Inimigo focado em cartas de ataque. */
+            AZOIDE, 
+            /** Inimigo focado em cartas de defesa. */
+            BZOIDE }
     }
+
+    /**
+     * Define os atributos de uma carta do jogo em formato declarativo.
+     *
+     * @param name        nome da carta
+     * @param energyCost  custo em energia para jogar a carta
+     * @param effectValue valor base do efeito (dano, escudo ou acúmulos)
+     * @param description texto descritivo da carta
+     * @param type        tipo da carta ({@link CardDefinition.CardType})
+     * @param multiTarget {@code true} se a carta atinge todos os inimigos
+     * @param selfTarget  {@code true} se o efeito é aplicado no próprio usuário
+     * @param effectType  tipo do efeito para cartas do tipo {@code EFFECT};
+     *                    {@code null} para cartas de dano e escudo
+     */
 
     public record CardDefinition(
         String name,
@@ -144,20 +185,77 @@ public class Data {
         boolean selfTarget,
         EffectType effectType
     ) {
-        public enum CardType { DAMAGE, SHIELD, EFFECT }
+        /** Tipos de carta disponíveis no jogo. */
+        public enum CardType { 
+            /** Carta que causa dano ao alvo. */
+            DAMAGE, 
+            /** Carta que concede escudo ao usuário. */
+            SHIELD, 
+             /** Carta que aplica um efeito de status. */
+            EFFECT }
     }
+
+    /**
+     * Define uma escolha narrativa com suas opções e consequências.
+     *
+     * @param lore    texto narrativo que descreve a situação ao jogador
+     * @param options lista de opções disponíveis para o jogador escolher
+     */
 
     public record ChoiceDefinition(String lore, List<OptionDefinition> options) {
+            /**
+             * Define uma opção individual dentro de uma escolha narrativa.
+             *
+             * @param action   texto descritivo da opção exibido ao jogador
+             * @param feedback texto de consequência exibido após a escolha
+             * @param type     tipo do efeito da opção ({@link OptionDefinition.OptionType})
+             */
         public record OptionDefinition(String action, String feedback, OptionType type) {
-            public enum OptionType { HEAL, DAMAGE }
+            /** Tipos de efeito de uma opção de escolha. */
+            public enum OptionType { 
+                /** Opção que recupera vida do herói. */
+                HEAL, 
+                /** Opção que causa dano ao herói. */
+                DAMAGE }
         }
     }
 
+    /**
+     * Define a estrutura de um nó do mapa de progressão.
+     *
+     * @param events lista de definições de eventos presentes neste nó
+     */
+
     public record NodeDefinition(List<NodeEventDefinition> events) {
+        /**
+         * Define um evento individual dentro de um nó do mapa.
+         *
+         * @param type    tipo do evento ({@link NodeEventDefinition.EventType})
+         * @param payload dados adicionais do evento: lista de {@link EnemyDefinition}
+         *                para batalhas, índice inteiro para escolhas, {@code null}
+         *                para loja e fogueira
+         */
         public record NodeEventDefinition(EventType type, Object payload) {
-            public enum EventType { BATTLE, SHOP, CAMPFIRE, CHOICE }
+            /** Tipos de evento disponíveis nos nós do mapa. */
+            public enum EventType { 
+                 /** Combate contra inimigos. */
+                BATTLE, 
+                /** Loja para compra de itens com ouro. */
+                SHOP, 
+                /** Fogueira para descanso ou melhoria de cartas. */
+                CAMPFIRE, 
+                 /** Escolha narrativa com consequências. */
+                CHOICE }
         }
     }
+
+    /**
+     * Define os atributos de um herói jogável.
+     *
+     * @param name   nome do herói
+     * @param health pontos de vida iniciais
+     * @param energy energia máxima por turno
+     */
 
     public record HeroDefinition(String name, int health, int energy) {}
 

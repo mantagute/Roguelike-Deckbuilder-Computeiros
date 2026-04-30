@@ -20,14 +20,31 @@ public class Hero extends Entity {
         super(name, health, energy);
     }
 
+    /**
+     * Adiciona a quantidade especificada de ouro ao total do herói.
+     *
+     * @param amount quantidade de ouro a adicionar; deve ser não-negativo
+     */
     public void addGold(int amount) {
         gold = gold + amount;
     }
 
+    /**
+     * Retorna o total de ouro atual do herói.
+     *
+     * @return quantidade de ouro disponível
+     */
     public int getGold() {
         return gold;
     }
 
+    /**
+     * Desconta a quantidade especificada do ouro do herói.
+     * Não verifica saldo — o chamador é responsável por garantir
+     * que o herói possui ouro suficiente antes de chamar este método.
+     *
+     * @param amount quantidade de ouro a descontar; deve ser não-negativo
+     */
     public void spendGold(int amount) {
         gold = gold - amount;
     }

@@ -1,4 +1,4 @@
-# Tarefa 5 - ## Roguelike Deckbuilder Computeiros 025
+Roguelike Deckbuilder Computeiros 025
 
 Este projeto é um jogo de batalha em turnos inspirado no roguelike deckbuilder *Slay the Spire*. O jogador controla o herói **Didi Marco**, usando cartas de ataque, defesa e efeitos para derrotar inimigos ao longo de uma sequência de batalhas encadeadas por um mapa de progressão.
 
@@ -54,10 +54,29 @@ tarefa5/
         │       │   └── enemies/
         │       │       ├── Azoide.java
         │       │       └── Bzoide.java
+        │       ├── events/
+        │       │   ├── Event.java
+        │       │   ├── Battle.java
+        │       │   ├── CampFire.java
+        │       │   ├── Choice.java
+        │       │   ├── Shop.java
+        │       │   ├── campfire/
+        │       │   │   ├── CampFireAction.java
+        │       │   │   ├── Rest.java
+        │       │   │   └── UpgradeCard.java
+        │       │   ├── choice/
+        │       │   │   ├── ChoiceOption.java
+        │       │   │   ├── DamageOption.java
+        │       │   │   └── HealOption.java
+        │       │   └── shop/
+        │       │       ├── ShopItem.java
+        │       │       ├── DamageCardItem.java
+        │       │       ├── ShieldCardItem.java
+        │       │       └── PotionItem.java
         │       ├── gameOrchestrator/
         │       │   ├── App.java
-        │       │   ├── Battle.java
         │       │   ├── Data.java
+        │       │   ├── GameFactory.java
         │       │   ├── GameUtils.java
         │       │   ├── SaveManager.java
         │       │   ├── SaveState.java
@@ -94,20 +113,31 @@ O jogo evoluiu de uma batalha isolada para uma campanha com múltiplas batalhas 
 
 **Como funciona:**
 
-- O mapa é representado pela classe `TreePath`, uma árvore binária construída a partir de uma lista de grupos de inimigos definidos em `Data.enemies`. O elemento central da lista vira a raiz; as metades esquerda e direita formam as subárvores recursivamente.
-- Cada nó da árvore (`Node`) contém os inimigos daquela batalha e referências para os próximos nós (esquerda e direita).
-- O jogador começa no nó raiz. Após vencer uma batalha, escolhe avançar pelo caminho da esquerda ou da direita — sempre em direção a nós mais profundos, sem possibilidade de retroceder.
+- O mapa é representado pela classe `TreePath`, uma árvore binária construída a partir de `Data.nodeDefinitions` via `GameFactory.createTreePath()`. O elemento central da lista vira a raiz; as metades esquerda e direita formam as subárvores recursivamente.
+- Cada nó da árvore (`Node`) contém uma lista de eventos a serem executados em sequência e referências para os próximos nós (esquerda e direita).
+- O jogador começa no nó raiz. Após concluir todos os eventos de um nó, escolhe avançar pelo caminho da esquerda ou da direita — sempre em direção a nós mais profundos, sem possibilidade de retroceder.
 - Se o nó atual possui apenas um filho, o jogador avança automaticamente, sem necessidade de escolha.
-- O jogo termina em **vitória** quando o jogador vence o nó folha (sem filhos), e em **derrota** quando a vida do herói chega a zero.
-- **Vida e baralho** do herói persistem entre batalhas. Efeitos e energia são reiniciados a cada nova batalha.
+- O jogo termina em **vitória** quando o jogador conclui o nó folha (sem filhos), e em **derrota** quando a vida do herói chega a zero.
+- **Vida, ouro e baralho** do herói persistem entre nós. Efeitos e energia são reiniciados a cada nova batalha.
+
+### Sistema de Eventos
+
+Cada nó do mapa contém uma lista de eventos executados em sequência ao ser visitado. Todos os eventos estendem a classe abstrata `Event`, que define o contrato `initializeEvent()` e `getPreview()`.
+
+- **`Battle`** — combate contra inimigos; pode retornar `CONTINUE`, `DEFEAT` ou `QUIT`.
+- **`CampFire`** — permite descansar (recuperar 35% de vida) ou forjar uma carta: são apresentadas 3 cartas aleatórias do baralho e a escolhida tem seus atributos melhorados em 35%.
+- **`Shop`** — loja com uma carta de dano, uma de escudo e uma poção, compráveis com ouro ganho em batalhas. O jogador pode sair a qualquer momento.
+- **`Choice`** — evento narrativo com duas opções embaralhadas, cada uma causando dano ou cura equivalente a 10% da vida máxima.
+
+O padrão **Strategy** é aplicado em `CampFire` (via `CampFireAction`), em `Choice` (via `ChoiceOption`) e em `Shop` (via `ShopItem`), permitindo adicionar novos comportamentos sem modificar as classes de evento.
 
 ### Classe Battle
 
-A lógica de combate foi extraída de `App` para a classe `Battle`, que encapsula um confronto individual. Ela recebe o herói, os inimigos, o publisher e as pilhas do baralho, executa o loop de turnos e retorna um `BattleResult` (`VICTORY`, `DEFEAT` ou `QUIT`). Isso mantém `App` responsável apenas pela progressão entre batalhas.
+A lógica de combate foi extraída de `App` para a classe `Battle`, dentro do pacote `events`, que encapsula um confronto individual. Ela recebe o herói, os inimigos, o publisher e as pilhas do baralho, executa o loop de turnos e retorna um `EventResult` (`CONTINUE`, `DEFEAT` ou `QUIT`). Isso mantém `App` responsável apenas pela progressão entre nós.
 
-### Persistência de Estado (Desafio Extra)
+### Persistência de Estado 
 
-O progresso do jogador é salvo automaticamente após cada vitória, usando JSON via **Gson**. O arquivo `save.json` é gravado no diretório de trabalho e contém:
+O progresso do jogador é salvo automaticamente após cada nó concluído, usando JSON via **Gson**. O arquivo `save.json` é gravado no diretório de trabalho e contém:
 
 - Vida atual do herói;
 - Nomes de todas as cartas do baralho (buy pile + discard pile);
@@ -164,7 +194,24 @@ O sistema de efeitos é implementado via padrão **Observer**:
 - **`Publisher`** mantém uma lista de `Subscriber`s e os notifica ao fim de cada turno com o evento `"FIM_TURNO"`.
 - **`Subscriber`** é classe abstrata com o método `beNotified(String event, Entity user, Entity target)`.
 - **`Effect`** estende `Subscriber`. Ao ser criado, se inscreve automaticamente no `Publisher`; ao expirar (acúmulos zerados), se desinscreve.
-- Ao iniciar uma nova fase, o `Publisher` é resetado via `resetPublisher()` e os efeitos ativos do herói são limpos via `clearEffects()`, garantindo que efeitos de batalhas anteriores não vazem para a próxima.
+- Ao avançar para um novo nó, o `Publisher` é resetado via `resetPublisher()` e os efeitos ativos do herói são limpos via `clearEffects()`, garantindo que efeitos de batalhas anteriores não vazem para a próxima.
+
+---
+
+## Padrão de Design Factory Method
+
+A criação de todas as entidades e estruturas do jogo é centralizada em `GameFactory`, seguindo o padrão **Factory Method**. `Data` contém exclusivamente definições declarativas — records como `CardDefinition`, `EnemyDefinition` e `NodeDefinition` — sem nenhuma lógica de instanciação. Essa responsabilidade pertence inteiramente a `GameFactory`:
+
+- **`createHero()`** — instancia o herói a partir de `Data.heroDefinition`.
+- **`createCardFromDefinition()`** — determina o tipo concreto da carta (`DamageCard`, `ShieldCard` ou `EffectCard`) a partir de uma `CardDefinition`.
+- **`createCardbyName()`** — reconstrói uma carta do baralho do herói pelo nome, usado ao carregar um save.
+- **`createBuyPile()`** — constrói e embaralha uma pilha de compra a partir de uma lista de definições.
+- **`createEnemyFromDefinition()`** — instancia o inimigo concreto (`Azoide` ou `Bzoide`) e inicializa seu Publisher e baralho.
+- **`createChoiceFromDefinition()`** — constrói um evento `Choice` com as opções concretas (`HealOption` ou `DamageOption`).
+- **`createEvents()`** — constrói a lista de eventos de um nó (`Battle`, `Shop`, `CampFire` ou `Choice`).
+- **`createTreePath()`** — orquestra a construção completa da árvore de progressão a partir de `Data.nodeDefinitions`.
+
+Essa separação mantém `App` e os demais consumidores desacoplados das classes concretas, centralizando toda a lógica de instanciação em um único lugar.
 
 ---
 
@@ -182,11 +229,13 @@ O sistema de efeitos é implementado via padrão **Observer**:
 
 ## Fluxo de Jogo
 
-1. O mapa de progressão é construído como árvore binária a partir de `Data.enemies`.
-2. O jogador começa no nó raiz e enfrenta os inimigos daquele nó.
-3. Após cada vitória, escolhe o próximo caminho (esquerda ou direita) e o progresso é salvo automaticamente.
-4. A vida e o baralho do herói persistem entre batalhas; efeitos e energia reiniciam.
-5. O jogo termina em vitória ao vencer o nó folha, ou em derrota se a vida do herói chegar a zero.
+1. O mapa de progressão é construído como árvore binária a partir de `Data.nodeDefinitions` via `GameFactory.createTreePath()`.
+2. O herói começa com um baralho fixo definido em `Data`, composto por cartas de dano, escudo e efeito. Durante o jogo, novas cartas podem ser adquiridas na loja e adicionadas permanentemente ao baralho.
+3. O jogador começa no nó raiz e executa os eventos daquele nó em sequência.
+4. Ao vencer uma batalha, o herói recebe entre 30 e 45 moedas de ouro aleatoriamente. O ouro persiste entre nós e é usado exclusivamente na loja.
+5. Após concluir todos os eventos de um nó, o jogador escolhe o próximo caminho (esquerda ou direita) e o progresso é salvo automaticamente.
+6. A vida, o ouro e o baralho do herói persistem entre nós; efeitos e energia reiniciam a cada batalha.
+7. O jogo termina em vitória ao concluir o nó folha, ou em derrota se a vida do herói chegar a zero.
 
 ### Fluxo de Batalha
 
@@ -205,7 +254,7 @@ A saída do terminal mantém a interface estilizada:
 - **Texto colorido** via escape ANSI (vermelho para dano, azul para escudo, amarelo para energia, magenta para efeitos).
 - **Limpeza de tela** entre turnos com `\033[H\033[2J`.
 - **Pausas entre prints** via `Thread.sleep()`.
-- **Prévia dos inimigos** de cada caminho ao escolher a próxima batalha.
+- **Prévia dos eventos** de cada caminho ao escolher o próximo nó.
 - **Cartas tachadas** quando o jogador não tem energia suficiente para jogá-las.
 
 Toda a lógica visual está encapsulada na classe `UserInterface`, separada da lógica de negócio. A classe foi elaborada com o auxílio do **Claude Code**.

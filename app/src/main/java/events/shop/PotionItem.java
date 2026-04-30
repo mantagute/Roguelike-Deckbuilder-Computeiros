@@ -3,6 +3,11 @@ package events.shop;
 import deck.BuyPile;
 import entities.Hero;
 
+/**
+ * Item de loja que cura imediatamente {@code 30%} da vida máxima do herói
+ * quando comprado. Consumida no ato da compra, sem necessidade de uso manual.
+ */
+
 public class PotionItem implements ShopItem{
 
     private boolean sold = false;

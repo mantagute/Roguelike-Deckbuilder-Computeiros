@@ -4,10 +4,21 @@ import cards.DamageCard;
 import deck.BuyPile;
 import entities.Hero;
 
+/**
+ * Item de loja que adiciona uma {@link cards.DamageCard} ao baralho do herói
+ * quando comprado.
+ */
+
 public class DamageCardItem implements ShopItem{
     
     private DamageCard damageCard;
     private boolean sold = false;
+
+    /**
+     * Constrói um item de carta de dano para venda na loja.
+     *
+     * @param damageCard carta de dano a ser vendida
+     */
 
     public DamageCardItem(DamageCard damageCard) {
         this.damageCard = damageCard;

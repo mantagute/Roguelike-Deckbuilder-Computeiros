@@ -11,6 +11,12 @@ import entities.Hero;
 import gameOrchestrator.UserInterface;
 import cards.Card;
 
+/**
+ * Ação de fogueira que permite ao herói melhorar uma carta do seu baralho.
+ * Apresenta 3 cartas aleatórias do baralho (buy pile + discard pile) e
+ * aplica {@link cards.Card#upgrade()} na carta escolhida pelo jogador.
+ */
+
 public class UpgradeCard implements CampFireAction {
 
     public String getDescription() {

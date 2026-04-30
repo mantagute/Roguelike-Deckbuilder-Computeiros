@@ -22,11 +22,11 @@ public class Node {
     private Node left, right;
 
     /**
-     * Constrói um nó com a lista de inimigos especificada.
-    * Os ponteiros para os nós filhos são inicializados como {@code null}.
-    *
-    * @param enemies lista de definições de inimigos presentes neste nó
-    */
+     * Constrói um nó com a lista de eventos especificada.
+     * Os ponteiros para os nós filhos são inicializados como {@code null}.
+     *
+     * @param events lista de eventos presentes neste nó do mapa
+     */
 
     public Node(List<Event> events) {
         this.events = new ArrayList<Event>(events);

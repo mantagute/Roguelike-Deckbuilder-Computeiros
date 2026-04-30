@@ -299,6 +299,11 @@ public abstract class Entity {
         return currentEnergy;
     }
 
+    /**
+     * Retorna o total máximo de pontos de vida desta entidade.
+     *
+     * @return vida máxima da entidade
+     */
     public double getMaxHealth() {
         return maxHealth;
     }
@@ -314,6 +319,12 @@ public abstract class Entity {
         this.health = health;
     }
 
+    /**
+     * Restaura pontos de vida da entidade pela quantidade especificada,
+     * sem ultrapassar a vida máxima.
+     *
+     * @param amount quantidade de vida a restaurar; deve ser não-negativo
+     */
     public void heal(double amount) {
         health = health + amount;
         if (health > maxHealth) {
