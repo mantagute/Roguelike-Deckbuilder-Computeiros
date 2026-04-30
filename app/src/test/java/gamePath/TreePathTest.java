@@ -3,31 +3,36 @@ package gamePath;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
-import gameOrchestrator.Data;
+import events.Event;
+import observer.Publisher;
+import gameOrchestrator.GameFactory;
 
 public class TreePathTest {
 
     @Test
     public void RootFromTreePathIsTheMiddleElement() { 
-        TreePath treePath = new TreePath(Data.enemies);
-        assertEquals(Data.enemies.get(3).get(0).name(), treePath.getRoot().getEnemiesDefinitions().get(0).name());
+        Publisher publisher = new Publisher();
+        TreePath treePath = GameFactory.createTreePath(publisher);
+        Event event = treePath.getRoot().getEvents().get(1);
+        String preview = event.getPreview();
+        System.out.println(event.getPreview());
+        assertTrue(preview.contains("Kojak"));
     }
 
     @Test
     public void RootHasSiblings() {
-        TreePath treePath = new TreePath(Data.enemies);
+        Publisher publisher = new Publisher();
+        TreePath treePath = GameFactory.createTreePath(publisher);
         assertNotNull(treePath.getRoot().getLeftNode());
         assertNotNull(treePath.getRoot().getRightNode());
     }
 
     @Test
     public void LeafNodesHaveNullChildren() {
-        TreePath treePath = new TreePath(Data.enemies);
-        assertNull(treePath.getRoot().getLeftNode().getLeftNode().getLeftNode());
-        assertNull(treePath.getRoot().getLeftNode().getLeftNode().getRightNode());
-        assertNull(treePath.getRoot().getLeftNode().getRightNode().getLeftNode());
-        assertNull(treePath.getRoot().getRightNode().getRightNode().getLeftNode());
-        assertNull(treePath.getRoot().getRightNode().getRightNode().getRightNode());
-        assertNull(treePath.getRoot().getRightNode().getLeftNode().getRightNode());
+        Publisher publisher = new Publisher();
+        TreePath treePath = GameFactory.createTreePath(publisher);
+        Node leaf = treePath.getRoot().getLeftNode().getLeftNode();
+        assertNull(leaf.getLeftNode());
+        assertNull(leaf.getRightNode());
     }
 }

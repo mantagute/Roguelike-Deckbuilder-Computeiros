@@ -2,10 +2,6 @@ package gameOrchestrator;
 
 import java.util.List;
 import effects.Effect.EffectType;
-import gameOrchestrator.Data.CardDefinition;
-import gameOrchestrator.Data.ChoiceDefinition.OptionDefinition;
-import gameOrchestrator.Data.EnemyDefinition;
-import gameOrchestrator.Data.NodeDefinition.NodeEventDefinition;
 
 /**
  * Repositório central de dados estáticos do jogo em formato declarativo.
