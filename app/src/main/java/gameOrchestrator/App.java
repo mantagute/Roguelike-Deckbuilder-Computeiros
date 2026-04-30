@@ -84,6 +84,8 @@ public class App {
      */
     private DiscardPile heroDiscardPile;
 
+    private int currentEventIndex = 0;
+
     /**
      * Publisher central do padrão Observer.
      *
@@ -194,20 +196,16 @@ public class App {
 
     /**
      * Constrói um {@link SaveState} representando o estado atual do jogo,
-     * capturando a vida do herói, todas as cartas do baralho (buy pile + discard pile)
-     * e o caminho percorrido na árvore de progressão.
-     *
-     * <p>Deve ser chamado <b>após a vitória e após {@link #startNewFase}</b>,
-     * de forma que {@code pathTaken} já inclua a direção recém-escolhida
-     * e as pilhas reflitam o estado pós-batalha.
+     * capturando a vida do herói, todas as cartas do baralho (buy pile + discard pile),
+     * o caminho percorrido na árvore de progressão e o índice do próximo evento a executar.
      *
      * @return {@link SaveState} pronto para ser persistido por {@link SaveManager}
-     */
+ */
     public SaveState buildSaveState() {
         List<String> allCardNames = new ArrayList<>();
         allCardNames.addAll(heroBuyPile.getCardNames());
         allCardNames.addAll(heroDiscardPile.getCardNames());
-        return new SaveState(hero.getHealth(), allCardNames, pathTaken);
+        return new SaveState(hero.getHealth(), allCardNames, pathTaken, currentEventIndex);
     }
 
     /**
@@ -223,6 +221,7 @@ public class App {
      */
     public void loadGame() {
         SaveState saveState = SaveManager.loadGame();
+        currentEventIndex = saveState.getEventIndex();
         hero.setHealth(saveState.getHeroHealth());
         while (heroBuyPile.getSize() > 0) heroBuyPile.extractCard(0);
         while (heroDiscardPile.getSize() > 0) heroDiscardPile.extractCard(0);
@@ -265,7 +264,7 @@ public class App {
      *       <li>Em vitória, verifica se o nó atual é folha (fim do jogo);
      *           caso contrário, navega para o próximo nó e salva;</li>
      *       <li>Em derrota, apaga o save e encerra o loop;</li>
-     *       <li>Em {@code QUIT}, salva e encerra o loop sem apagar o progresso.</li>
+     *       <li>Em {@code QUIT}, salva o estado atual incluindo o índice do evento interrompido e encerra o loop, permitindo retomar a partir do mesmo ponto na próxima execução.</li>
      *     </ol>
      *   </li>
      *   <li>Exibe a tela de fim de jogo e aguarda {@code 10000 ms}.</li>
@@ -277,37 +276,34 @@ public class App {
     public static void main(String[] args) throws Exception {
         App.gameIntro();
         GameUtils.Wait(3000);
-
         Scanner scanner = new Scanner(System.in);
         App app = new App();
         app.start();
-
         if (SaveManager.isThereAnySave()) {
             UserInterface.printSaveFound();
             GameUtils.Wait(2000);
             app.loadGame();
         }
-
         boolean nodeAborted = false;
-
         while (app.hero.isAlive() && app.currentNode != null) {
-            EventResult eventResult = EventResult.CONTINUE;
-            for (Event event : app.currentNode.getEvents()) {
+            nodeAborted = false;
+            List<Event> events = app.currentNode.getEvents();
+            for (int i = app.currentEventIndex; i < events.size(); i++) {
+                Event event = events.get(i);
+                app.currentEventIndex = i + 1;
                 if (event instanceof Battle) {
-                    ((Battle)event).setPublisher(app.publisher);
+                    ((Battle) event).setPublisher(app.publisher);
                 }
-                eventResult = event.initializeEvent(app.hero, app.heroBuyPile, app.heroDiscardPile, scanner);
-                
+                EventResult eventResult = event.initializeEvent(app.hero, app.heroBuyPile, app.heroDiscardPile, scanner);
                 if (eventResult.equals(EventResult.CONTINUE)) {
-                    
                     continue;
-                }
-                else if (eventResult.equals(EventResult.DEFEAT)) {
+                } else if (eventResult.equals(EventResult.DEFEAT)) {
                     SaveManager.resetSave();
                     nodeAborted = true;
                     break;
-                }
-                else {
+                } else {
+                    SaveState saveState = app.buildSaveState();
+                    SaveManager.saveGame(saveState);
                     UserInterface.printAction("Progresso salvo! Até a próxima...");
                     GameUtils.Wait(1500);
                     nodeAborted = true;
@@ -315,6 +311,7 @@ public class App {
                 }
             }
             if (!nodeAborted) {
+                app.currentEventIndex = 0;
                 if (app.currentNode.getLeftNode() == null && app.currentNode.getRightNode() == null) {
                     app.currentNode = null;
                 } else {
@@ -331,10 +328,10 @@ public class App {
                     SaveState saveState = app.buildSaveState();
                     SaveManager.saveGame(saveState);
                 }
+            } else {
+                break;
             }
-
         }
-
         boolean gameWon = app.currentNode == null && app.hero.isAlive();
         boolean showEndScreen = !app.hero.isAlive() || app.currentNode == null;
         if (showEndScreen) {

@@ -5,14 +5,14 @@ import java.util.List;
 /**
  * Representa o estado mínimo necessário para retomar uma partida salva.
  *
- * <p>Um {@code SaveState} é criado por {@link App#buildSaveState()} após cada vitória
- * e serializado em disco por {@link SaveManager}. Ao reabrir o jogo, ele é
- * desserializado e aplicado ao estado atual via {@link App#loadGame()}.
+ * <p>Um {@code SaveState} é criado por {@link App#buildSaveState()} ao salvar
+ * e sair durante o combate, ou após avançar de nó, sendo serializado em disco
+ * por {@link SaveManager}. Ao reabrir o jogo, ele é desserializado e aplicado
+ * ao estado atual via {@link App#loadGame()}.
  *
- * <p>O estado capturado corresponde ao momento <b>entre batalhas</b>:
- * após a vitória da fase anterior e antes do início da próxima, garantindo
- * que o jogador recomece exatamente na batalha seguinte ao save, com
- * a vida e o baralho do estado pós-vitória.
+ * <p>O estado capturado inclui a vida do herói, o baralho completo, o caminho
+ * percorrido na árvore de progressão e o índice do próximo evento a executar
+ * no nó atual, garantindo que o jogador retome exatamente de onde parou.
  *
  * @see SaveManager
  * @see App#buildSaveState()
@@ -36,17 +36,22 @@ public class SaveState {
      */
     private List<String> pathTaken;
 
+    /** Índice do próximo evento a executar no nó atual no momento do save. */
+    private int eventIndex;
+
     /**
      * Constrói um novo {@code SaveState} com os dados do estado atual do jogo.
      *
      * @param heroHealth    pontos de vida atuais do herói
      * @param deckCardNames nomes de todas as cartas do baralho (buy pile + discard pile)
      * @param pathTaken     lista ordenada de direções percorridas na árvore de progressão
+     * @param eventIndex    índice do próximo evento a executar no nó atual
      */
-    public SaveState(double heroHealth, List<String> deckCardNames, List<String> pathTaken) {
+    public SaveState(double heroHealth, List<String> deckCardNames, List<String> pathTaken, int eventIndex) {
         this.heroHealth = heroHealth;
         this.deckCardNames = deckCardNames;
         this.pathTaken = pathTaken;
+        this.eventIndex = eventIndex;
     }
 
     /**
@@ -74,5 +79,14 @@ public class SaveState {
      */
     public List<String> getPathTaken() {
         return pathTaken;
+    }
+
+    /**
+     * Retorna o índice do próximo evento a executar no nó atual.
+     *
+     * @return índice do evento a retomar ao carregar o jogo
+     */
+    public int getEventIndex() { 
+        return eventIndex; 
     }
 }
